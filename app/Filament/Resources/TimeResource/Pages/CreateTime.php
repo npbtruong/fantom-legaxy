@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateTime extends CreateRecord
 {
     protected static string $resource = TimeResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

@@ -20,7 +20,7 @@ return new class extends Migration
             //$table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->text('service_id');
             $table->date('booking_date');
-            $table->foreignId('track_id')->constrained()->cascadeOnDelete();
+            $table->time('booking_time');
             $table->string('note')->nullable();
             $table->boolean('status')->default(false);
             $table->timestamps();

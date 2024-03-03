@@ -3,9 +3,9 @@
 namespace App\Filament\Resources;
 
 use Filament\Forms;
+use App\Models\Time;
 use App\Models\User;
 use Filament\Tables;
-use App\Models\Track;
 use App\Models\Booking;
 use App\Models\Service;
 use Filament\Forms\Get;
@@ -13,6 +13,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Radio;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Checkbox;
 use Filament\Tables\Columns\TextColumn;
@@ -58,7 +59,7 @@ class BookingResource extends Resource
             Select::make('service_id')
                 ->multiple()
                 ->label('Service')
-                ->options(Service::all()->map(function ($service) {
+                ->options(Service::where('user_id', auth()->id())->get()->map(function ($service) {
                     return [
                         'id' => $service->id,
                         'name' => $service->name . ' : ' . $service->price . '$',
@@ -73,8 +74,8 @@ class BookingResource extends Resource
                 ->required()
                 ->suffixIcon('heroicon-m-calendar-days'),
 
-            Select::make('track_id')
-                ->label('Track')
+            Select::make('booking_time')
+                ->label('Booking Time')
                 ->live()
                 ->options(function(Get $get){
                     if(!$get('booking_date')){
@@ -82,15 +83,13 @@ class BookingResource extends Resource
                     };
 
                     $bookingDates = $get('booking_date');
-                    $track_id_exclude = Booking::where('booking_date', $bookingDates)->pluck('track_id')->unique()->all();
+                    $time_exclude = Booking::where('booking_date', $bookingDates)->where('user_id', auth()->id())->pluck('booking_time')->unique()->all();
                         
 
-                    return Track::whereNotIn('id', $track_id_exclude)->where('status', true)->get()->map(function ($track) {
-                        return [
-                            'id' => $track->id ,
-                            'name' => substr($track->time, 0, -3) . ' ⏰',
-                        ];
-                    })->pluck('name', 'id')->toArray();
+                    return Time::where('user_id', auth()->id())->get()->map(function ($time) use ($time_exclude) {
+                        $newtime = array_diff($time->time, $time_exclude);
+                        return array_combine($newtime, $newtime);
+                    });
                 })
                 ->required(),
 
@@ -119,7 +118,7 @@ class BookingResource extends Resource
                 
                 CheckboxColumn::make('status'),
                 TextColumn::make('booking_date')->date('d/m/Y')->sortable()->searchable(),
-                TextColumn::make('track.time')->dateTime('H:i')->sortable()->searchable(),
+                TextColumn::make('booking_time')->dateTime('H:i')->sortable()->searchable(),
             ])->defaultSort('booking_date')
             ->filters([
                 //
@@ -133,11 +132,11 @@ class BookingResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->query(function (Booking $query) {
-                if(auth()->user()->role == 'admin'){
-                    return $query;
+            ->modifyQueryUsing(function (Builder $query) {
+                $userRole = Auth::user()->role;
+                if($userRole != 'admin'){
+                    $query->where('user_id', Auth::user()->id);
                 }
-                return $query->where('user_id', auth()->user()->id);
             });
     }
 

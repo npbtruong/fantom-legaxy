@@ -8,15 +8,17 @@ use App\Models\Service;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use SebastianBergmann\Type\TrueType;
+
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
-
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\ServiceResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\ServiceResource\RelationManagers;
-use SebastianBergmann\Type\TrueType;
 
 class ServiceResource extends Resource
 {
@@ -53,6 +55,7 @@ class ServiceResource extends Resource
         return $table
             ->columns([
                 //
+                TextColumn::make('user_id')->sortable()->searchable()->hidden(auth()->user()->role != 'admin'),
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('price')->searchable()->sortable(),
             ])
@@ -68,11 +71,11 @@ class ServiceResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->query(function (Service $query) {
-                if(auth()->user()->role == 'admin'){
-                    return $query;
+            ->modifyQueryUsing(function (Builder $query) {
+                $userRole = Auth::user()->role;
+                if($userRole != 'admin'){
+                    $query->where('user_id', Auth::user()->id);
                 }
-                return $query->where('user_id', auth()->user()->id);
             });
     }
 

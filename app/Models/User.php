@@ -15,10 +15,12 @@ class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        return str_ends_with($this->role, 'admin') || str_ends_with($this->role, 'user');
     }
+
 
     /**
      * The attributes that are mass assignable.
@@ -55,4 +57,6 @@ class User extends Authenticatable implements FilamentUser
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+
 }

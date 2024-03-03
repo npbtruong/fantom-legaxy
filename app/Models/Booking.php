@@ -21,7 +21,7 @@ class Booking extends Model
         'user_id',
         'service_id',
         'booking_date',
-        'track_id',
+        'booking_time',
         'note',
     ];
 
@@ -36,10 +36,7 @@ class Booking extends Model
      /**
      * Get the service that the booking belongs to.
      */
-    public function track()
-    {
-        return $this->belongsTo(Track::class);
-    }
+
 
      /**
      * The attributes that should be cast.

@@ -31,9 +31,9 @@ class UserResource extends Resource
                 //
                 TextInput::make('name')->required(),
                 TextInput::make('email')->email()->required()->unique(ignoreRecord: true),
-                TextInput::make('phone_number')->required()->rules('numeric'),
-                TextInput::make('salon_name')->required(),
-                TextInput::make('address')->required(),
+                TextInput::make('phone_number')->required()->rules('numeric')->unique(ignoreRecord: true),
+                TextInput::make('salon_name')->required()->unique(ignoreRecord: true),
+                TextInput::make('address')->required()->unique(ignoreRecord: true),
                 Select::make('role')->options([
                     'admin' => 'Admin',
                     'user' => 'User',
